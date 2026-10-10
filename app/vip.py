@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from .db import TerminalState
 from .models import VIPAccount, VIPCard, VIPPortalSession, VIPBinding, VIPLoginTask, uid
 from .security import digest, random_token
-from .providers.quark_cookie import parse_cookie
+from .providers.quark_cookie import parse_cookie, check_account as check_web_cookie
 from .providers.vip_gateway import VIPGateway
 
 RUNNING = ('QUEUED', 'PENDING', 'UNCERTAIN', 'WAIT_VERIFY', 'VERIFY_PENDING')
@@ -59,6 +59,29 @@ class VIPService:
         return {'account_id': account.id, 'credential_type': account.credential_type,
                 **self.vault.decrypt(account.credentials_encrypted, 'vip-account:' + account.id)}
 
+    def update_credentials(self, account_id, credential):
+        with self.db.transaction() as db:
+            account = db.scalar(select(VIPAccount).where(VIPAccount.id == account_id).with_for_update())
+            if not account:
+                raise HTTPException(404, 'vip_account_not_found')
+            if db.scalar(select(VIPBinding.id).where(VIPBinding.account_id == account.id,
+                                                     VIPBinding.status.in_(OCCUPIED))):
+                raise HTTPException(409, 'vip_account_has_active_bindings')
+            secret = credential.get_secret_value()
+            if account.credential_type == 'cookie':
+                secret = '; '.join(sorted(parse_cookie(secret)['cookie'].split('; ')))
+            fingerprint = digest(account.credential_type + ':' + secret)
+            if db.scalar(select(VIPAccount.id).where(VIPAccount.credential_hash == fingerprint,
+                                                     VIPAccount.id != account.id)):
+                raise HTTPException(409, 'vip_duplicate_account')
+            account.credential_hash = fingerprint
+            account.credentials_encrypted = self.vault.encrypt({'credential': secret}, 'vip-account:' + account.id)
+            account.subject_hash, account.checked_at = None, None
+            if account.status != 'disabled':
+                account.status = 'unverified'
+            self.audit(db, 'account.credentials_updated', account.id, actor='admin')
+            return self.account_view(account)
+
     def check_account(self, account_id):
         with self.db.transaction() as db:
             account = db.get(VIPAccount, account_id)
@@ -66,6 +89,22 @@ class VIPService:
                 raise HTTPException(404, 'vip_account_not_found')
             payload = self.credentials(account)
             fingerprint = account.credential_hash
+        if not self.gateway.configured:
+            if payload['credential_type'] != 'cookie':
+                raise HTTPException(503, 'vip_service_unavailable')
+            result = check_web_cookie(parse_cookie(payload['credential']))
+            web_valid = result.get('account_check') == 'ok' and result.get('membership_check') == 'ok'
+            with self.db.transaction() as db:
+                account = db.scalar(select(VIPAccount).where(VIPAccount.id == account_id).with_for_update())
+                if account.credential_hash != fingerprint:
+                    raise HTTPException(409, 'vip_account_changed')
+                if account.status != 'disabled':
+                    account.status = ('web_only' if web_valid else
+                                      'unverified' if result.get('network_or_response_error') else 'unavailable')
+                account.checked_at = self.clock()
+                self.audit(db, 'account.web_checked', account.id, actor='admin', authenticated=web_valid)
+                # This check never establishes target identity or enables authorization inventory.
+                return self.account_view(account) | {'web_check': result}
         result = self.gateway.call('check', payload, 'check:' + account_id + ':' + random_token())
         limit = result.get('device_limit')
         subject = result.get('account_subject')

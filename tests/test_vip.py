@@ -100,6 +100,56 @@ def test_missing_gateway_cannot_issue_fake_success_or_charge_card(system):
         assert db.get(VIPCard, record['id']).activated_at is None
 
 
+def test_valid_web_cookie_without_gateway_never_becomes_authorization_inventory(system, monkeypatch):
+    service, client, app = system
+    client.headers['Authorization'] = 'Bearer ' + service.settings.admin_token
+    record = client.post('/api/admin/vip/accounts/import', json={'accounts': [
+        {'alias': 'owner', 'credential': '__pus=PRIVATE_COOKIE'}]}).json()['items'][0]
+    monkeypatch.setattr('app.vip.check_web_cookie', lambda record: {'authenticated': True,
+        'account_check': 'ok', 'membership_check': 'ok', 'member_type': 'SUPER_VIP'})
+    checked = client.post(f'/api/admin/vip/accounts/{record["id"]}/check', json={})
+    assert checked.json()['status'] == 'web_only'
+    card(client)
+    assert submit(client).status_code == 503
+    assert 'PRIVATE_COOKIE' not in checked.text
+    with service.database.transaction() as db:
+        assert db.get(VIPAccount, record['id']).checked_at == service.clock()
+        assert db.scalar(select(func.count()).select_from(VIPBinding)) == 0
+
+
+def test_credential_rotation_is_encrypted_resets_health_and_preserves_disable(system, monkeypatch):
+    service, client, app = system
+    client.headers['Authorization'] = 'Bearer ' + service.settings.admin_token
+    record = client.post('/api/admin/vip/accounts/import', json={'accounts': [
+        {'alias': 'owner', 'credential': '__pus=OLD_PRIVATE_COOKIE'}]}).json()['items'][0]
+    path = f'/api/admin/vip/accounts/{record["id"]}'
+    client.post(path + '/disable', json={})
+    rotated = client.post(path + '/credentials', json={'credential': '__pus=NEW_PRIVATE_COOKIE'})
+    assert rotated.status_code == 200 and rotated.json()['status'] == 'disabled'
+    assert 'NEW_PRIVATE_COOKIE' not in rotated.text
+    monkeypatch.setattr('app.vip.check_web_cookie', lambda record: {'authenticated': True,
+        'account_check': 'ok', 'membership_check': 'ok', 'member_type': 'SUPER_VIP'})
+    assert client.post(path + '/check', json={}).json()['status'] == 'disabled'
+    with service.database.transaction() as db:
+        owner = db.get(VIPAccount, record['id'])
+        assert 'NEW_PRIVATE_COOKIE' not in owner.credentials_encrypted
+        assert app.state.vip.credentials(owner)['credential'] == '__pus=NEW_PRIVATE_COOKIE'
+        assert not any('PRIVATE_COOKIE' in a.detail for a in db.scalars(select(Audit)))
+
+
+def test_credential_rotation_refuses_duplicate_and_occupied_account(vip_system):
+    service, client, vip, _, _ = vip_system
+    owner = account(client)
+    account(client, 'owner-2', 'OTHER_REFERENCE')
+    path = f'/api/admin/vip/accounts/{owner["id"]}/credentials'
+    assert client.post(path, json={'credential': 'OTHER_REFERENCE'}).status_code == 409
+    card(client)
+    submit(client)
+    vip.tick()
+    response = client.post(path, json={'credential': 'REPLACEMENT_REFERENCE'})
+    assert response.status_code == 409 and response.json()['detail'] == 'vip_account_has_active_bindings'
+
+
 def test_card_clock_starts_on_authorization_idempotent_retries_do_not_charge_twice(vip_system):
     service, client, vip, gateway, _ = vip_system
     account(client)

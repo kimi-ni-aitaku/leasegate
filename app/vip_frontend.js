@@ -8,6 +8,7 @@ const messages = {
   vip_device_limit:'这张卡密已绑定其他电脑。', vip_qr_already_assigned:'二维码已被使用，请刷新电脑上的二维码。',
   vip_qr_expired:'二维码已过期，请在电脑上刷新后重新扫描。', vip_inventory_empty:'账号库存暂不可用，请稍后重试或联系管理员。',
   vip_service_unavailable:'服务暂未开放，请联系管理员。', vip_gateway_unavailable:'授权服务暂不可用，请稍后重试。',
+  vip_account_has_active_bindings:'账号还有占用或待核对的电脑会话，暂时不能替换凭据。',
   vip_duplicate_account:'批次内或账号池中存在重复账号，请检查后重试。', vip_authorization_rejected:'本次授权未通过，请刷新二维码重试。',
   vip_verification_not_pending:'当前无需提交验证信息，请等待状态更新。', target_device_unverifiable:'无法确认这台电脑的授权信息，请联系管理员。',
   invalid_quark_reference_qr:'请上传或扫描夸克电脑网页登录二维码。', qr_not_found:'图片中没有可读取的二维码。',
@@ -98,7 +99,7 @@ let collection='accounts',offset=0,issued=[];
 const labels={id:'记录 ID',alias:'账号名称',credential_type:'凭据形式',capacity:'设备容量',status:'状态',checked_at:'检查时间',created_at:'创建时间',occupied:'占用',label:'商品',
   activated_at:'激活时间',expire_at:'到期时间',valid_until:'未激活有效期',max_devices:'绑定上限',remaining_scans:'剩余次数',remaining_seconds:'剩余秒数',error_code:'结果',challenge_kind:'验证类型',
   buyer_login_verified:'电脑登录已验证',card_id:'卡密 ID',binding_id:'绑定 ID',account_id:'账号 ID',revoke_supported:'支持设备注销'};
-const states={unverified:'待检查',ready:'可用',unavailable:'不可用',disabled:'停用',issued:'未激活',active:'使用中',expired:'到期',reserved:'预留',released:'已释放',
+const states={unverified:'待检查',web_only:'网页登录有效 · 待授权接入',ready:'可用',unavailable:'不可用',disabled:'停用',issued:'未激活',active:'使用中',expired:'到期',reserved:'预留',released:'已释放',
   revoke_pending:'待注销',remote_unconfirmed:'外部注销未确认',revoked:'已注销',QUEUED:'排队',PENDING:'处理中',WAIT_VERIFY:'待验证',VERIFY_PENDING:'验证处理中',
   UNCERTAIN:'核对中',AUTHORIZED:'授权确认',FAILED:'失败',EXPIRED:'二维码到期'};
 async function loadAdmin(){const data=await api(`/api/admin/vip/${collection}?offset=${offset}`);$('admin-login').hidden=true;$('admin-workspace').hidden=false;
@@ -112,7 +113,10 @@ async function loadAdmin(){const data=await api(`/api/admin/vip/${collection}?of
     else if(key==='error_code')value=messages[value]||value||'—';else if(typeof value==='boolean')value=value?'是':'否';
     cell.textContent=value??'—';if(key.endsWith('_id')||key==='id'){cell.title=String(value);cell.textContent=String(value||'—').slice(0,8);}row.append(cell);}
     if(['accounts','cards'].includes(collection)){const cell=document.createElement('td');
-      if(collection==='accounts'){const check=document.createElement('button');check.textContent='检查';check.className='secondary';check.addEventListener('click',async()=>{check.disabled=true;try{await api(`/api/admin/vip/accounts/${item.id}/check`,{});await loadAdmin();}catch(e){error(e);}finally{check.disabled=false;}});cell.append(check);}
+      if(collection==='accounts'){const check=document.createElement('button');check.textContent='检查';check.className='secondary';check.addEventListener('click',async()=>{check.disabled=true;try{const result=await api(`/api/admin/vip/accounts/${item.id}/check`,{});await loadAdmin();
+        if(result.web_check){const w=result.web_check;status(w.account_check==='ok'&&w.membership_check==='ok'?`网页登录有效，会员类型：${w.member_type||'未返回'}。扫码授权仍待接入。`:w.network_or_response_error?'网络检查未完成，请稍后重试。':`Cookie 当前不可用（${w.account_check_code||w.account_check}；${w.membership_check}）。请更新凭据。`,result.status==='web_only'?'success':'error');}
+      }catch(e){error(e);}finally{check.disabled=false;}});cell.append(check);
+        const replace=document.createElement('button');replace.textContent='更新凭据';replace.className='secondary';replace.disabled=item.occupied>0;replace.addEventListener('click',()=>{$('rotate-form').dataset.accountId=item.id;$('rotate-alias').textContent=item.alias;$('rotate-credential').value='';$('rotate-box').hidden=false;$('rotate-credential').focus();});cell.append(replace);}
       const disable=document.createElement('button');disable.textContent='停用';disable.className='secondary';disable.disabled=item.status==='disabled';disable.addEventListener('click',async()=>{disable.disabled=true;try{await api(`/api/admin/vip/${collection}/${item.id}/disable`,{});await loadAdmin();}catch(e){error(e);disable.disabled=false;}});cell.append(disable);row.append(cell);}
     $('table-body').append(row);}
   if(!data.items.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.textContent='暂无记录';cell.colSpan=20;row.append(cell);$('table-body').append(row);}
@@ -121,11 +125,14 @@ async function loadAdmin(){const data=await api(`/api/admin/vip/${collection}?of
 }
 async function admin(){
   form('admin-login',async()=>{const token=$('admin-secret').value;$('admin-secret').value='';await api('/api/admin/login',{token});await loadAdmin();status('管理后台已登录。','success');});
-  action('admin-logout',async()=>{await api('/api/admin/logout',{});$('admin-workspace').hidden=true;$('admin-login').hidden=false;issued=[];$('issued-cards').value='';$('issued-box').hidden=true;status('已退出管理后台。');});
+  action('admin-logout',async()=>{await api('/api/admin/logout',{});$('admin-workspace').hidden=true;$('admin-login').hidden=false;issued=[];$('issued-cards').value='';$('issued-box').hidden=true;$('rotate-credential').value='';$('rotate-box').hidden=true;status('已退出管理后台。');});
   form('import-form',async()=>{const lines=$('account-lines').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);$('account-lines').value='';
     const prefix='账号-'+crypto.randomUUID().slice(0,8),type=$('credential-type').value,capacity=Number($('account-capacity').value);
     const data=await api('/api/admin/vip/accounts/import',{accounts:lines.map((credential,i)=>({alias:`${prefix}-${i+1}`,credential_type:type,credential,capacity}))});
     collection='accounts';offset=0;await loadAdmin();status(`已加密导入 ${data.items.length} 个账号。请检查账号可用性。`,'success');});
+  form('rotate-form',async()=>{const credential=$('rotate-credential').value;$('rotate-credential').value='';
+    await api(`/api/admin/vip/accounts/${$('rotate-form').dataset.accountId}/credentials`,{credential});$('rotate-box').hidden=true;await loadAdmin();status('凭据已加密更新，请重新检查。','success');});
+  action('rotate-cancel',async()=>{$('rotate-credential').value='';$('rotate-box').hidden=true;});
   form('cards-form',async()=>{const data=await api('/api/admin/vip/cards',{count:Number($('card-number').value),label:$('card-name').value,
     duration_seconds:Math.round(Number($('card-hours').value)*3600),valid_seconds:Number($('card-valid').value)*86400,max_scans:Number($('card-scans').value),max_devices:Number($('card-devices').value)});
     issued=data.items;$('issued-cards').value=issued.map(c=>`${c.code}\n${c.activation_url}`).join('\n\n');$('issued-box').hidden=false;collection='cards';offset=0;await loadAdmin();status(`已生成 ${issued.length} 张卡密，请保存本批次链接。`,'success');});

@@ -51,6 +51,10 @@ class Answer(Input):
     answer: SecretStr = Field(min_length=1, max_length=256)
 
 
+class CredentialUpdate(Input):
+    credential: SecretStr = Field(min_length=1, max_length=16384)
+
+
 def install_vip(app, service, admin, set_cookie):
     vip = VIPService(service)
     app.state.vip = vip
@@ -110,6 +114,10 @@ def install_vip(app, service, admin, set_cookie):
     @operations.post('/accounts/{account_id}/check')
     def check(account_id: str):
         return vip.check_account(account_id)
+
+    @operations.post('/accounts/{account_id}/credentials')
+    def update_credentials(account_id: str, data: CredentialUpdate):
+        return vip.update_credentials(account_id, data.credential)
 
     @operations.post('/accounts/{account_id}/disable')
     def disable_account(account_id: str):
