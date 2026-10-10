@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from sqlalchemy import String, Text, Integer, Numeric, ForeignKey, CheckConstraint, Index
+from sqlalchemy import String, Text, Integer, Numeric, ForeignKey, CheckConstraint, Index, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -162,3 +162,81 @@ class ProviderRevocation(Base):
 
 
 Index('lease_due', Lease.status, Lease.expire_at)
+
+
+class VIPAccount(Base):
+    __tablename__ = 'vip_accounts'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    alias: Mapped[str] = mapped_column(String(80), unique=True)
+    credential_type: Mapped[str] = mapped_column(String(24))
+    credentials_encrypted: Mapped[str] = mapped_column(Text)
+    credential_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    subject_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    capacity: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(24), default='unverified')
+    checked_at: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (CheckConstraint('capacity > 0 AND capacity <= 100'),)
+
+
+class VIPCard(Base):
+    __tablename__ = 'vip_cards'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    code_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    label: Mapped[str] = mapped_column(String(80))
+    duration_seconds: Mapped[int] = mapped_column(Integer, default=86400)
+    valid_until: Mapped[int] = mapped_column(Integer)
+    max_scans: Mapped[int] = mapped_column(Integer, default=7)
+    used_scans: Mapped[int] = mapped_column(Integer, default=0)
+    max_devices: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(24), default='issued')
+    activated_at: Mapped[int | None] = mapped_column(Integer)
+    expire_at: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (CheckConstraint('duration_seconds > 0'),
+                     CheckConstraint('max_scans > 0 AND used_scans >= 0 AND used_scans <= max_scans'),
+                     CheckConstraint('max_devices > 0 AND max_devices <= 10'))
+
+
+class VIPPortalSession(Base):
+    __tablename__ = 'vip_portal_sessions'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    secret_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    card_id: Mapped[str] = mapped_column(ForeignKey('vip_cards.id'))
+    expire_at: Mapped[int] = mapped_column(Integer)
+
+
+class VIPBinding(Base):
+    __tablename__ = 'vip_bindings'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    card_id: Mapped[str] = mapped_column(ForeignKey('vip_cards.id'), index=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey('vip_accounts.id'), index=True)
+    device_hash: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(24), default='reserved')
+    session_encrypted: Mapped[str | None] = mapped_column(Text)
+    revoke_supported: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[int] = mapped_column(Integer)
+
+
+class VIPLoginTask(Base):
+    __tablename__ = 'vip_login_tasks'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    card_id: Mapped[str] = mapped_column(ForeignKey('vip_cards.id'), index=True)
+    sequence: Mapped[int] = mapped_column(Integer)
+    qr_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    payload_encrypted: Mapped[str | None] = mapped_column(Text)
+    binding_id: Mapped[str | None] = mapped_column(ForeignKey('vip_bindings.id'))
+    status: Mapped[str] = mapped_column(String(32), default='QUEUED')
+    error_code: Mapped[str | None] = mapped_column(String(48))
+    challenge_kind: Mapped[str | None] = mapped_column(String(32))
+    login_verified: Mapped[int] = mapped_column(Integer, default=0)
+    claim_token: Mapped[str | None] = mapped_column(String(64))
+    claim_until: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[int] = mapped_column(Integer)
+    expire_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (UniqueConstraint('card_id', 'sequence'),)
+
+
+Index('vip_task_due', VIPLoginTask.status, VIPLoginTask.next_attempt_at)

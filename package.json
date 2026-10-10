@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "scripts": {"build": "esbuild app/frontend.js --bundle --minify --outfile=app/static/app.js", "test:e2e": "playwright test"},
+  "scripts": {"build": "esbuild app/frontend.js --bundle --minify --outfile=app/static/app.js && esbuild app/vip_frontend.js --bundle --minify --outfile=app/static/vip.js", "test:e2e": "playwright test"},
   "dependencies": {"@zxing/browser": "0.1.5", "qrcode": "1.5.4"},
   "devDependencies": {"esbuild": "0.25.12", "@playwright/test": "1.58.2"}
 }

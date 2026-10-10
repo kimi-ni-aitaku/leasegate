@@ -138,7 +138,8 @@ def create_app(settings=None, database=None, redis_client=None, clock=None, oaut
                 if not await run_in_threadpool(rate_limit, request):
                     raise HTTPException(429, 'rate_limited')
             if request.method == 'POST':
-                limit = settings.image_max_bytes + 65536 if request.url.path == '/api/qr/decode-image' else 32768
+                limit = (settings.image_max_bytes + 65536 if request.url.path == '/api/qr/decode-image'
+                         else 1024 * 1024 if request.url.path == '/api/admin/vip/accounts/import' else 32768)
                 body = bytearray()
                 async for chunk in request.stream():
                     body.extend(chunk)
@@ -570,6 +571,8 @@ def create_app(settings=None, database=None, redis_client=None, clock=None, oaut
             service.audit(db, 'resource.created', resource.id, 'admin', capacity=data.capacity)
             return {'id': resource.id}
 
+    from .vip_routes import install_vip
+    install_vip(app, service, admin, cookie)
     app.mount('/static', StaticFiles(directory=STATIC), name='static')
 
     @app.get('/')

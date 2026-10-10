@@ -1,0 +1,16 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LeaseGate · 电脑扫码授权</title><link rel="stylesheet" href="/static/vip.css"><script type="module" src="/static/vip.js"></script></head>
+<body data-page="buyer"><header><a class="brand" href="/qr"><span class="brand-icon">L</span>LeaseGate <small>扫码授权</small></a><a href="/vip-admin" class="quiet">管理入口</a></header>
+<main class="buyer-layout"><section class="hero"><div class="eyebrow">电脑端 · 临时授权</div><h1>扫码一步，<br>在电脑上开始使用。</h1><p>用手机扫描电脑上的夸克登录二维码，<br>或直接上传截图完成授权。</p><div class="hero-tags"><span>一张卡密 · 一台电脑</span><span>首次授权后开始计时</span></div><ol class="steps"><li><b>01</b><div>打开卡密链接<small>确认有效期与剩余次数</small></div></li><li><b>02</b><div>扫描电脑登录二维码<small>也支持截图上传、拖拽和粘贴</small></div></li><li><b>03</b><div>返回电脑查看登录结果<small>如有验证要求，按页面提示完成</small></div></li></ol></section>
+<section class="workspace"><div class="panel"><div class="panel-heading"><div><div class="eyebrow">授权信息</div><h2 id="card-label">打开你的卡密</h2></div><span id="card-status" class="badge">待验证</span></div>
+<form id="open-form"><label for="card-code">卡密</label><input id="card-code" type="password" autocomplete="off" placeholder="输入 VG- 开头的卡密" required><button class="primary wide" type="submit">验证卡密</button></form>
+<div id="card-info" hidden><div class="metrics"><div><small>剩余扫码次数</small><strong id="scan-count">—</strong></div><div><small>剩余授权时间</small><strong id="time-left">暂未计时</strong></div></div><div class="details"><span>到期时间</span><b id="expires">首次授权后开始计时</b></div><button id="switch-card" class="quiet small">切换卡密</button></div></div>
+<div class="panel notice"><div class="notice-label">最新公告</div><p id="notice">正在读取公告…</p></div>
+<div class="panel"><div class="panel-heading"><div><div class="eyebrow">扫码登录</div><h2>提交电脑上的二维码</h2></div><span class="badge neutral">夸克</span></div><p class="muted">保持电脑登录页打开，二维码过期后请刷新重试。</p>
+<div class="actions"><button id="camera-open" class="primary" disabled><span>◎</span> 手机扫码</button><button id="upload-open" class="secondary" disabled><span>▧</span> 上传二维码</button></div>
+<input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+<div id="drop-zone" class="drop-zone" tabindex="0"><span>↥</span><b>拖入二维码截图</b><small>也可以点击这里后粘贴 · JPG / PNG / WEBP</small></div>
+<div id="camera-box" hidden><video id="camera-video" autoplay muted playsinline></video><button id="camera-close" class="secondary wide">关闭摄像头</button></div>
+<div id="status" role="status" aria-live="polite" class="status">请先验证卡密。</div>
+<form id="verify-form" hidden><label id="verify-label" for="verify-answer">补充验证信息</label><input id="verify-answer" type="password" autocomplete="off" maxlength="256"><button class="primary wide" type="submit">提交验证</button></form>
+<div id="owner-note" class="status" hidden>请在会员授权设备上完成确认，页面将自动更新。</div></div>
+<p class="footnote">本页面管理卡密的授权期限。电脑端登录状态以夸克显示为准。</p></section></main><footer>LeaseGate <span>扫码授权 · 次数管理 · 服务记录</span></footer></body></html>

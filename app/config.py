@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     oauth_scope: str = ''
     quark_cookie_file: str = '.private/quark-cookie.enc'
     quark_manual_confirmation_enabled: bool = False
+    vip_gateway_url: str = ''
+    vip_gateway_secret: str = ''
+    vip_notice: str = '仅支持在电脑端登录。请保持电脑上的登录二维码窗口打开。'
 
     @model_validator(mode='after')
     def validate_security(self):
@@ -66,6 +69,12 @@ class Settings(BaseSettings):
                 raise ValueError('Production requires a buyer delivery channel')
         if self.delivery_url and (not self.delivery_url.startswith('https://') or len(self.delivery_secret) < 32):
             raise ValueError('Delivery callback requires HTTPS and a strong shared secret')
+        if self.vip_gateway_url:
+            gateway = urlsplit(self.vip_gateway_url)
+            if (gateway.scheme != 'https' or not gateway.netloc or gateway.username or gateway.password
+                    or gateway.query or gateway.fragment or len(self.vip_gateway_secret) < 32):
+                raise ValueError('VIP gateway requires a fixed HTTPS URL and a strong secret')
+            self.vip_gateway_url = self.vip_gateway_url.rstrip('/')
         return self
 
 

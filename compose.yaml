@@ -58,6 +58,9 @@ services:
       OAUTH_SCOPE: ${OAUTH_SCOPE:-}
       QUARK_COOKIE_FILE: /var/lib/leasegate-cookie/quark-cookie.enc
       QUARK_MANUAL_CONFIRMATION_ENABLED: ${QUARK_MANUAL_CONFIRMATION_ENABLED:-false}
+      VIP_GATEWAY_URL: ${VIP_GATEWAY_URL:-}
+      VIP_GATEWAY_SECRET: ${VIP_GATEWAY_SECRET:-}
+      VIP_NOTICE: ${VIP_NOTICE:-仅支持在电脑端登录。请保持电脑上的登录二维码窗口打开。}
     volumes: ["runtime:/run/leasegate:ro", "cookie-data:/var/lib/leasegate-cookie"]
     ports: ["${BIND_ADDRESS:-127.0.0.1}:${PORT:-80}:8000"]
     depends_on:

@@ -134,7 +134,9 @@ def process_revocations(service):
 
 
 def tick(service):
+    from .vip import VIPService
     expired = service.expire_due()
+    VIPService(service).tick()
     process_oauth(service)
     dispatch_deliveries(service)
     process_revocations(service)
