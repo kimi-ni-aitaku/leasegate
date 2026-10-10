@@ -1,0 +1,27 @@
+{
+  "source_browser": "Chrome",
+  "target_browser": "Safari",
+  "cookies_copied_to_target_browser": false,
+  "qr_before": {
+    "state": "WAIT_USER",
+    "upstream_status": 50004001,
+    "buyer_login_verified": false
+  },
+  "cookie_only_confirm_status": 50001,
+  "native_signature_supplied": false,
+  "qr_after": {
+    "state": "WAIT_USER",
+    "upstream_status": 50004001,
+    "buyer_login_verified": false
+  },
+  "source_cookie_after": {
+    "authenticated": true,
+    "account_check": "ok",
+    "membership_check": "ok",
+    "partial_cookie": false,
+    "qr_confirmation_supported": false,
+    "account_check_code": "OK",
+    "membership_check_code": 0,
+    "member_type": "SUPER_VIP"
+  }
+}

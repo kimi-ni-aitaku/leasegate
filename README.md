@@ -4,7 +4,7 @@
 
 订单驱动的临时授权系统。FastAPI + PostgreSQL + Redis + ZXing 浏览器扫码。支持一次性卡密、扫码确认、SSE、15 分钟 Access JWT、默认 24 小时 Lease、自动到期、资源释放、审计与管理后台。
 
-**当前夸克联调状态：扫码代确认仍未成功；有效 Web Cookie 的官方电脑版 Token 交换已成功。** 2026-10-11，新 Cookie 最初通过账号与 `SUPER_VIP` 检查；官方交换返回 `20000` 并颁发 App Token，本机客户端接收后显示“确认登录”。未点击官方确认，电脑登录仍未验证。用户随后说明网页退出；再次检查该 Cookie 已失效（`AUTH_ERROR:50051`、会员 HTTP 401）。扫码签名来源和指定设备注销仍未解决，按用户约束不接入会员手机 App。详见[最新 Cookie 与客户端联调](research/quark-current-cookie-desktop.md)；旧测试独立保留在 [网页版复核](research/quark-opencli-review.md) 和 [此前交换测试](research/quark-desktop-exchange.md)。
+**当前夸克联调状态：Chrome 的新 Cookie 有效，但独立 Safari 二维码的 Cookie 单独确认仍失败。** 2026-10-11，保持 Chrome 登录，账号与会员检查 `OK / SUPER_VIP`；Safari 新二维码确认前后均为 `WAIT_USER`，确认接口返回 `50001`，源 Cookie 测后继续有效。详见[Safari 独立浏览器实测](research/quark-safari-isolated-test.md)。另一次有效 Web Cookie 的官方电脑版交换成功返回 `20000` 并颁发 App Token，本机接收后仍待“确认登录”，最终客户端登录未验证；网页退出后旧凭据失效是此前独立记录，见 [Cookie 与客户端联调](research/quark-current-cookie-desktop.md)。扫码授权能力和指定设备注销仍未解决，按用户约束不接入会员手机 App。
 
 ## 一键启动
 
