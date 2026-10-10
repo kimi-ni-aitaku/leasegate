@@ -1,0 +1,32 @@
+name: test
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: test-password
+          POSTGRES_USER: leasegate
+          POSTGRES_DB: leasegate_test
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U leasegate -d leasegate_test" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: pip install -r requirements-dev.txt
+      - run: npm ci && npm run build
+      - run: pytest -q
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://leasegate:test-password@localhost:5432/leasegate_test
+      - run: python scripts/compose_smoke.py
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          BASE_URL: http://localhost
+      - if: always()
+        run: docker compose logs --no-color && docker compose down
