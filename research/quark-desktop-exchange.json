@@ -1,0 +1,18 @@
+{
+  "source": "owner-authorized successful login capture",
+  "credential_values_in_report": false,
+  "desktop_login_before": false,
+  "device_request_success": true,
+  "official_exchange": {
+    "http_status": 200,
+    "status": 50051,
+    "code": null,
+    "success": null,
+    "response_keys": [
+      "status",
+      "message"
+    ]
+  },
+  "app_token_received": false,
+  "outcome": "official_exchange_rejected_credential"
+}

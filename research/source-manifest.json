@@ -1,0 +1,105 @@
+{
+  "review_date": "2026-10-10",
+  "files": [
+    {
+      "repository": "lich0821/QuarkPan",
+      "commit": "ca311f6eaf3a50374371ad0e6900d85c992c7788",
+      "file": "quark_client/auth/api_login.py",
+      "sha256": "d25d55e2c23922c7e1cc103b73e20b805dc751dfe1ab0faad38a888443ad4ef2",
+      "source_url": "https://github.com/lich0821/QuarkPan/blob/ca311f6eaf3a50374371ad0e6900d85c992c7788/quark_client/auth/api_login.py"
+    },
+    {
+      "repository": "lich0821/QuarkPan",
+      "commit": "ca311f6eaf3a50374371ad0e6900d85c992c7788",
+      "file": "quark_client/auth/login.py",
+      "sha256": "865c0f551c7a9c4310a3da9133f7cba52d3aa0cadc86e0b9d4c76e3b7c4c537b",
+      "source_url": "https://github.com/lich0821/QuarkPan/blob/ca311f6eaf3a50374371ad0e6900d85c992c7788/quark_client/auth/login.py"
+    },
+    {
+      "repository": "imeiming/quark-drive",
+      "commit": "6976f165ee2f3bc19ec1496276d13723803f4722",
+      "file": "references/auth.md",
+      "sha256": "edd88713cc7b45324576a3563246cc6e652efa6af9f4b6a326ba528138129b89",
+      "source_url": "https://github.com/imeiming/quark-drive/blob/6976f165ee2f3bc19ec1496276d13723803f4722/references/auth.md"
+    },
+    {
+      "repository": "imeiming/quark-drive",
+      "commit": "6976f165ee2f3bc19ec1496276d13723803f4722",
+      "file": "scripts/quark_cli.py",
+      "sha256": "81f3c84275aecebb57163984565e30f6a39f524737ddbdd3b0a565b5477bcc99",
+      "source_url": "https://github.com/imeiming/quark-drive/blob/6976f165ee2f3bc19ec1496276d13723803f4722/scripts/quark_cli.py"
+    },
+    {
+      "repository": "AlistGo/alist",
+      "commit": "f5aea67ef571afe90a6a4144e85da4ae1a122e66",
+      "file": "drivers/quark_uc/driver.go",
+      "sha256": "94d202f40dc4f4b95c84c57e1879ca2a053d766519503f29095ce758ff13ef0f",
+      "source_url": "https://github.com/AlistGo/alist/blob/f5aea67ef571afe90a6a4144e85da4ae1a122e66/drivers/quark_uc/driver.go"
+    },
+    {
+      "repository": "AlistGo/alist",
+      "commit": "f5aea67ef571afe90a6a4144e85da4ae1a122e66",
+      "file": "drivers/quark_uc/util.go",
+      "sha256": "d8fe962100f1d5728ae9b5d11820ba0a78ed8e0567a651a417d46bbfaa87f1ff",
+      "source_url": "https://github.com/AlistGo/alist/blob/f5aea67ef571afe90a6a4144e85da4ae1a122e66/drivers/quark_uc/util.go"
+    },
+    {
+      "repository": "AlistGo/alist",
+      "commit": "f5aea67ef571afe90a6a4144e85da4ae1a122e66",
+      "file": "drivers/quark_uc_tv/driver.go",
+      "sha256": "18f00966b41376d7c889dcda425b12b3f69fbb4afa4de4a8d48089ada3f20f04",
+      "source_url": "https://github.com/AlistGo/alist/blob/f5aea67ef571afe90a6a4144e85da4ae1a122e66/drivers/quark_uc_tv/driver.go"
+    },
+    {
+      "repository": "AlistGo/alist",
+      "commit": "f5aea67ef571afe90a6a4144e85da4ae1a122e66",
+      "file": "drivers/quark_uc_tv/util.go",
+      "sha256": "4fbf0d44d51650d190087cf7d300b64363ec02b79622367970909a0e09ff5849",
+      "source_url": "https://github.com/AlistGo/alist/blob/f5aea67ef571afe90a6a4144e85da4ae1a122e66/drivers/quark_uc_tv/util.go"
+    },
+    {
+      "repository": "OpenListTeam/OpenList",
+      "commit": "4c39bbe9c228680e2a6f78555175f7f2063d452c",
+      "file": "drivers/quark_uc/driver.go",
+      "sha256": "6c1e7758c1da1fcf080d10116cbc7da776e0f47583d487609f77a580139d3a80",
+      "source_url": "https://github.com/OpenListTeam/OpenList/blob/4c39bbe9c228680e2a6f78555175f7f2063d452c/drivers/quark_uc/driver.go"
+    },
+    {
+      "repository": "OpenListTeam/OpenList",
+      "commit": "4c39bbe9c228680e2a6f78555175f7f2063d452c",
+      "file": "drivers/quark_uc/util.go",
+      "sha256": "785709e0bc5499b8b0a88b6df18d68bcb5f53de01085ae2eb0aafa4203a17c0c",
+      "source_url": "https://github.com/OpenListTeam/OpenList/blob/4c39bbe9c228680e2a6f78555175f7f2063d452c/drivers/quark_uc/util.go"
+    },
+    {
+      "repository": "OpenListTeam/OpenList",
+      "commit": "4c39bbe9c228680e2a6f78555175f7f2063d452c",
+      "file": "drivers/quark_uc_tv/driver.go",
+      "sha256": "da38b777efd371fb150a6dd50680749994d218227a437441b1c454cd7e6d39e6",
+      "source_url": "https://github.com/OpenListTeam/OpenList/blob/4c39bbe9c228680e2a6f78555175f7f2063d452c/drivers/quark_uc_tv/driver.go"
+    },
+    {
+      "repository": "OpenListTeam/OpenList",
+      "commit": "4c39bbe9c228680e2a6f78555175f7f2063d452c",
+      "file": "drivers/quark_uc_tv/util.go",
+      "sha256": "135dde7ca410ef979e5dadc096b77e522440f0b4742ed77dea59fe2c6e61c390",
+      "source_url": "https://github.com/OpenListTeam/OpenList/blob/4c39bbe9c228680e2a6f78555175f7f2063d452c/drivers/quark_uc_tv/util.go"
+    },
+    {
+      "repository": "OpenListTeam/OpenList",
+      "commit": "4c39bbe9c228680e2a6f78555175f7f2063d452c",
+      "file": "drivers/quark_uc_tv/types.go",
+      "sha256": "395ddc0d1f57e42219d4f229b49794153c680c43eee6712173b67589964e6f15",
+      "source_url": "https://github.com/OpenListTeam/OpenList/blob/4c39bbe9c228680e2a6f78555175f7f2063d452c/drivers/quark_uc_tv/types.go"
+    }
+  ],
+  "official_web_sources": [
+    {
+      "source_url": "https://image.quark.cn/s/uae/g/1y/broccoli/DuJrlezmS/EATJRLSvv/bundle.752708baa310214926fb.js",
+      "sha256": "3a3fa5ecb25f01451e1c51c432e92f276c79020dd087daf98029b1106f3d1f30",
+      "bytes": 298793,
+      "review_date": "2026-10-10",
+      "entry_page": "https://b.quark.cn/apps/DuJrlezmS/routes/EATJRLSvv"
+    }
+  ]
+}

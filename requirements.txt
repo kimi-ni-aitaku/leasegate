@@ -1,0 +1,15 @@
+fastapi==0.135.1
+uvicorn==0.42.0
+SQLAlchemy==2.0.48
+psycopg[binary]==3.3.3
+redis==7.3.0
+PyJWT==2.12.1
+cryptography==46.0.5
+pydantic-settings==2.13.1
+python-multipart==0.0.22
+alembic==1.18.4
+httpx==0.28.1
+qrcode[pil]==8.2
+opencv-python-headless==4.13.0.92
+Pillow==12.1.1
+zxing-cpp==2.3.0

@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-09T23:27:56Z",
+  "source": "actual buyer website screenshot uploaded through local buyer UI",
+  "human_confirmation": false,
+  "native_signature_supplied": false,
+  "buyer_login_verified": false,
+  "owner_cookie_check": {
+    "authenticated": false,
+    "account_check": "not_authenticated_or_unrecognized_response",
+    "membership_check": "http_401",
+    "partial_cookie": false,
+    "qr_confirmation_supported": false,
+    "account_check_code": "AUTH_ERROR:50051"
+  },
+  "official_confirmation": {
+    "http": 200,
+    "business_status": 50001,
+    "submitted_fields": [
+      "client_id",
+      "v",
+      "request_id",
+      "token",
+      "vcode"
+    ],
+    "confirmation_accepted": false
+  },
+  "browser_ticket_polling": "left to the original official buyer webpage"
+}

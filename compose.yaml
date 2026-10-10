@@ -1,0 +1,87 @@
+name: leasegate
+services:
+  init:
+    image: python:3.13-slim
+    user: "0:0"
+    volumes:
+      - runtime:/run/leasegate
+      - cookie-data:/var/lib/leasegate-cookie
+      - ./scripts/init_env.py:/init_env.py:ro
+    command: ["sh", "-c", "python /init_env.py --path /run/leasegate/runtime.env && chown -R 10001:10001 /run/leasegate /var/lib/leasegate-cookie"]
+    restart: "no"
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: leasegate
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+      POSTGRES_DB: leasegate
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leasegate -d leasegate"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: ["redis-data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+  api:
+    build: .
+    environment: &app-env
+      DATABASE_URL: postgresql+psycopg://leasegate:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/leasegate
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DEMO_ENABLED: ${DEMO_ENABLED:-true}
+      DELIVERY_URL: ${DELIVERY_URL:-}
+      DELIVERY_SECRET: ${DELIVERY_SECRET:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      OAUTH_ISSUER: ${OAUTH_ISSUER:-}
+      OAUTH_DEVICE_ENDPOINT: ${OAUTH_DEVICE_ENDPOINT:-}
+      OAUTH_TOKEN_ENDPOINT: ${OAUTH_TOKEN_ENDPOINT:-}
+      OAUTH_REVOCATION_ENDPOINT: ${OAUTH_REVOCATION_ENDPOINT:-}
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:-}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:-}
+      OAUTH_SCOPE: ${OAUTH_SCOPE:-}
+      QUARK_COOKIE_FILE: /var/lib/leasegate-cookie/quark-cookie.enc
+      QUARK_MANUAL_CONFIRMATION_ENABLED: ${QUARK_MANUAL_CONFIRMATION_ENABLED:-false}
+    volumes: ["runtime:/run/leasegate:ro", "cookie-data:/var/lib/leasegate-cookie"]
+    ports: ["${BIND_ADDRESS:-127.0.0.1}:${PORT:-80}:8000"]
+    depends_on:
+      init: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+  worker:
+    build: .
+    command: ["worker"]
+    environment: *app-env
+    volumes: ["runtime:/run/leasegate:ro"]
+    depends_on:
+      api: {condition: service_healthy}
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+volumes:
+  runtime:
+  cookie-data:
+  postgres-data:
+  redis-data:

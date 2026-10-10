@@ -1,0 +1,14 @@
+.env
+.private
+*.enc
+.venv
+node_modules
+tests
+test-results
+.git
+*.db
+*.db-*
+__pycache__
+.pytest_cache
+.coverage
+research

@@ -1,0 +1,245 @@
+{
+  "capture_method": "MCP computer use + Chrome DevTools Network HAR export",
+  "browser_login_verified": true,
+  "membership_type": "SUPER_VIP",
+  "mobile_confirmation_request_captured": false,
+  "native_signatures_captured": false,
+  "credentials_in_deliverable": false,
+  "records": [
+    {
+      "at": "2026-10-09T22:56:20.545Z",
+      "method": "GET",
+      "endpoint": "https://uop.quark.cn/cas/ajax/getTokenForQrcodeLogin",
+      "query_fields": [
+        "client_id",
+        "v",
+        "request_id"
+      ],
+      "http_status": 200,
+      "business_status": 2000000,
+      "success": null,
+      "response_fields": [
+        "status",
+        "message",
+        "data"
+      ],
+      "data_fields": [
+        "members"
+      ],
+      "service_ticket_received": false
+    },
+    {
+      "at": "2026-10-09T22:59:29.599Z",
+      "method": "GET",
+      "endpoint": "https://uop.quark.cn/cas/ajax/getTokenForQrcodeLogin",
+      "query_fields": [
+        "client_id",
+        "v",
+        "request_id"
+      ],
+      "http_status": 200,
+      "business_status": 2000000,
+      "success": null,
+      "response_fields": [
+        "status",
+        "message",
+        "data"
+      ],
+      "data_fields": [
+        "members"
+      ],
+      "service_ticket_received": false
+    },
+    {
+      "at": "2026-10-09T22:59:31.661Z",
+      "method": "GET",
+      "endpoint": "https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken",
+      "query_fields": [
+        "client_id",
+        "v",
+        "request_id",
+        "token"
+      ],
+      "http_status": 200,
+      "business_status": 2000000,
+      "success": null,
+      "response_fields": [
+        "status",
+        "message",
+        "data"
+      ],
+      "data_fields": [
+        "members"
+      ],
+      "service_ticket_received": true
+    },
+    {
+      "at": "2026-10-09T22:59:31.715Z",
+      "method": "GET",
+      "endpoint": "https://pan.quark.cn/account/info",
+      "query_fields": [
+        "st",
+        "lw"
+      ],
+      "http_status": 200,
+      "business_status": "OK",
+      "success": true,
+      "response_fields": [
+        "success",
+        "data",
+        "code"
+      ],
+      "data_fields": [
+        "nickname",
+        "avatarUri",
+        "mobilekps",
+        "config"
+      ],
+      "service_ticket_received": false
+    },
+    {
+      "at": "2026-10-09T22:59:32.172Z",
+      "method": "GET",
+      "endpoint": "https://drive-member-h.quark.cn/1/clouddrive/member",
+      "query_fields": [
+        "pr",
+        "fr",
+        "fetch_subscribe",
+        "_ch",
+        "fetch_identity"
+      ],
+      "http_status": 200,
+      "business_status": 200,
+      "success": null,
+      "response_fields": [
+        "status",
+        "code",
+        "message",
+        "timestamp",
+        "data",
+        "metadata"
+      ],
+      "data_fields": [
+        "member_type",
+        "subscribe_status",
+        "image_backup",
+        "uhx6",
+        "deep_recycle_stat",
+        "created_at",
+        "member_info",
+        "acc_status",
+        "secret_use_capacity",
+        "super_vip_exp_at",
+        "use_capacity",
+        "video_backup",
+        "extend_capacity_composition",
+        "is_new_user",
+        "member_status",
+        "identity",
+        "subscribe_pay_channel",
+        "secret_total_capacity",
+        "subscribe_pay_channel_map",
+        "exp_at",
+        "subscribe_status_map",
+        "total_capacity"
+      ],
+      "service_ticket_received": false,
+      "member_type": "SUPER_VIP"
+    },
+    {
+      "at": "2026-10-09T22:59:32.172Z",
+      "method": "GET",
+      "endpoint": "https://pan.quark.cn/account/info",
+      "query_fields": [
+        "fr",
+        "platform"
+      ],
+      "http_status": 200,
+      "business_status": "OK",
+      "success": true,
+      "response_fields": [
+        "success",
+        "data",
+        "code"
+      ],
+      "data_fields": [
+        "nickname",
+        "avatarUri",
+        "mobilekps",
+        "config"
+      ],
+      "service_ticket_received": false
+    },
+    {
+      "at": "2026-10-09T22:59:32.173Z",
+      "method": "GET",
+      "endpoint": "https://drive-pc.quark.cn/1/clouddrive/file/sort",
+      "query_fields": [
+        "pr",
+        "fr",
+        "pdir_fid",
+        "_page",
+        "_size",
+        "_fetch_total",
+        "_fetch_sub_dirs",
+        "_sort",
+        "fetch_all_file",
+        "fetch_risk_file_name"
+      ],
+      "http_status": 200,
+      "business_status": 200,
+      "success": null,
+      "response_fields": [
+        "status",
+        "code",
+        "message",
+        "timestamp",
+        "data",
+        "metadata"
+      ],
+      "data_fields": [
+        "last_view_list",
+        "recent_file_list",
+        "list"
+      ],
+      "service_ticket_received": false
+    }
+  ],
+  "poll_counts": [
+    {
+      "endpoint": "uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken",
+      "business_status": "50004001",
+      "count": 100
+    },
+    {
+      "endpoint": "uop.quark.cn/cas/ajax/getTokenForQrcodeLogin",
+      "business_status": "2000000",
+      "count": 2
+    },
+    {
+      "endpoint": "uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken",
+      "business_status": "50004002",
+      "count": 3
+    },
+    {
+      "endpoint": "uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken",
+      "business_status": "2000000",
+      "count": 1
+    },
+    {
+      "endpoint": "pan.quark.cn/account/info",
+      "business_status": "OK",
+      "count": 2
+    },
+    {
+      "endpoint": "drive-member-h.quark.cn/1/clouddrive/member",
+      "business_status": "200",
+      "count": 1
+    },
+    {
+      "endpoint": "drive-pc.quark.cn/1/clouddrive/file/sort",
+      "business_status": "200",
+      "count": 1
+    }
+  ]
+}
