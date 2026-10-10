@@ -104,3 +104,5 @@ MCP 实际 UI：24 小时演示订单兑换后自动进入上传，官网已退�
 进一步按官方网页中真实存在的桌面授权流程，读取本机 `/desktop_info` 与 `/desktop_devicetoken`，用此前用户授权成功登录抓包中的真实 `mobilekps` 请求 `acquireAppToken`。HTTP 200，业务码 **50051**，未返回 App Token；本机官方客户端仍未登录，没有执行 `/desktop_postlogin`。这条路径也未建立新的授权会话。详见 [脱敏实测记录](research/quark-desktop-exchange.md)。
 
 上传包按文件清单生成；检查运行密钥、Cookie 值、抓包中的二维码 token、Service Ticket 和 mobilekps 均未进入交付文件。原始 HAR、加密凭据、运行数据库、密钥和依赖目录不上传。自动确认和第三方设备到期注销仍未实现；默认自动模式明确拒绝缺失原生签名，不自动退回人工模式。
+
+GitHub 首次 CI 的 PostgreSQL 17 后端测试为 **61 passed / 3 skipped**，前端构建成功。Docker 容器构建与 API 启动后，冒烟测试直接执行 `scripts/show_admin.py` 时找不到 `app` 模块；本机去掉 PYTHONPATH 后复现相同问题。已修复脚本的项目导入路径，并新增不依赖 PYTHONPATH、仅使用虚构密钥的独立进程回归测试。修复后本机全量 **62 passed / 3 skipped**。首次 Docker 冒烟流程未通过，修复版本以随后的 CI 实际结果为准。

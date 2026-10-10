@@ -14,6 +14,25 @@ from app.security import sign
 from conftest import create_order, prepare_qr
 
 
+def test_show_admin_direct_script_works_without_pythonpath(tmp_path):
+    import base64
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+    # Isolated fake configuration: never read or print the operator's real credentials.
+    expected = 'test-admin-token-' + 'a' * 40
+    env = {'PATH': os.environ.get('PATH', ''), 'ENVIRONMENT': 'test',
+           'ADMIN_TOKEN': expected, 'SIGNING_KEY': 's' * 48, 'WEBHOOK_SECRET': 'w' * 48,
+           'ENCRYPTION_KEY': base64.urlsafe_b64encode(b'e' * 32).decode()}
+    script = Path(__file__).resolve().parents[1] / 'scripts/show_admin.py'
+    result = subprocess.run([sys.executable, str(script)], cwd=tmp_path,
+                            env=env, capture_output=True, text=True, timeout=15)
+    assert result.returncode == 0
+    assert result.stdout.strip() == expected
+    assert result.stderr == ''
+
+
 def test_token_json_scheme_and_activation_qr_formats(system):
     service,client,_=system
     order=create_order(client);code=order['code']
