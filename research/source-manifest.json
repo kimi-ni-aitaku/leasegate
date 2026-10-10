@@ -100,6 +100,13 @@
       "bytes": 298793,
       "review_date": "2026-10-10",
       "entry_page": "https://b.quark.cn/apps/DuJrlezmS/routes/EATJRLSvv"
+    },
+    {
+      "source_url": "https://g.alicdn.com/uc-cloud-drive-web-system/cloud-drive-web/4.6.7/index.js",
+      "sha256": "8425a46ca3198e461edbb4773e6411866cb49c079e24981cf345003f3058aa89",
+      "bytes": 5878324,
+      "review_date": "2026-10-10",
+      "flow": "Authenticated Web session authorizes the local desktop client; not verified for buyer QR approval"
     }
   ]
 }
