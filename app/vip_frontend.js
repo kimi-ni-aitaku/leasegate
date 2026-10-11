@@ -12,13 +12,16 @@ const messages = {
   vip_duplicate_account:'批次内或账号池中存在重复账号，请检查后重试。', vip_authorization_rejected:'本次授权未通过，请刷新二维码重试。',
   vip_verification_not_pending:'当前无需提交验证信息，请等待状态更新。', target_device_unverifiable:'无法确认这台电脑的授权信息，请联系管理员。',
   invalid_quark_reference_qr:'请上传或扫描夸克电脑网页登录二维码。', qr_not_found:'图片中没有可读取的二维码。',
+  multiple_quark_qrs:'图片中有多个登录二维码，请裁剪到本次电脑上的一个二维码。',
+  multiple_qr_codes:'图片中有多个二维码，请裁剪后重新上传。',
   rate_limited:'操作过于频繁，请稍后再试。', invalid_request:'请检查填写内容。', invalid_admin_token:'管理员密钥不正确。',
   image_too_large:'图片不能超过 5 MB。', invalid_image:'图片无法读取，请重新截图。',
   unsupported_image_type:'请上传 PNG、JPG 或 WEBP 图片。', image_dimensions_too_large:'图片尺寸过大，请裁剪二维码后重试。',
 };
-let csrf, config, card, currentTask, serverNow=0, syncedAt=0, controls, media, polling, busy=false;
+let csrf, config, card, currentTask, serverNow=0, syncedAt=0, controls, media, polling, busy=false, reading=false, submitting=false, recognized=false, cardGeneration=0, lastInputError=null;
 function status(text, kind=''){ $('status').textContent=text; $('status').className='status '+kind; }
-function error(e){ status(messages[e.message] || '操作未完成，请稍后重试。','error'); }
+function error(e){const text=messages[e.message]||'操作未完成，请稍后重试。';
+  if(document.body.dataset.page==='buyer'&&!busy)lastInputError=text;status(text,'error');}
 async function api(path, body, retried=false){
   const form=body instanceof FormData;
   const headers=body===undefined?{}:{'X-CSRF-Token':csrf,...(form?{}:{'Content-Type':'application/json'})};
@@ -34,7 +37,7 @@ async function api(path, body, retried=false){
 function action(id,fn){$(id).addEventListener('click',async()=>{const b=$(id);b.disabled=true;try{await fn();}catch(e){error(e);}finally{b.disabled=false;if(document.body.dataset.page==='buyer')updateButtons();}});}
 function form(id,fn){$(id).addEventListener('submit',async e=>{e.preventDefault();const b=e.target.querySelector('[type=submit]');b.disabled=true;try{await fn();}catch(err){error(err);}finally{b.disabled=false;}});}
 const date=n=>n?new Date(n*1000).toLocaleString('zh-CN',{hour12:false}):'首次授权后开始计时';
-function updateButtons(){const usable=card&&['issued','active'].includes(card.status)&&card.remaining_scans>0&&config.available&&!busy;
+function updateButtons(){const usable=card&&['issued','active'].includes(card.status)&&card.remaining_scans>0&&!busy&&!reading&&!submitting;
   $('camera-open').disabled=!usable;$('upload-open').disabled=!usable;}
 function renderCard(value,now){card=value;serverNow=now;syncedAt=performance.now();$('open-form').hidden=true;$('card-info').hidden=false;
   $('card-label').textContent=card.label;$('card-status').textContent={issued:'待首次授权',active:'使用中',expired:'已到期',disabled:'已停用'}[card.status]||card.status;
@@ -53,25 +56,37 @@ function renderTask(task){if(!task)return;currentTask=task;busy=['QUEUED','PENDI
   $('owner-note').hidden=task.status!=='WAIT_VERIFY'||task.challenge_kind==='sms';
   $('owner-note').textContent=task.challenge_kind==='captcha'?'请在官方授权设备上完成人机验证，页面将自动更新。':'请在会员授权设备上完成确认，页面将自动更新。';
   $('verify-label').textContent='本次授权要求的短信验证码';updateButtons();}
-async function refreshBuyer(){const data=await api('/api/vip/state');renderCard(data.card,data.server_time);
+async function refreshBuyer(){const data=await api('/api/vip/state');config.available=data.available;renderCard(data.card,data.server_time);
   const task=data.tasks.find(t=>t.id===currentTask?.id)||data.tasks.find(t=>['QUEUED','PENDING','UNCERTAIN','WAIT_VERIFY','VERIFY_PENDING'].includes(t.status))||data.tasks[0];
-  renderTask(task);if(!task)status(config.available?'卡密已验证，可以提交电脑上的二维码。':'服务暂未开放，请联系管理员。');}
+  renderTask(task);if(!task&&!reading&&!submitting)status(lastInputError||(config.available?'卡密已验证，可以提交电脑上的二维码。':recognized?
+    '已识别夸克电脑网页登录二维码。登录授权服务尚未接入，尚未登录；未扣次数。':'可以识别二维码；登录授权服务尚未接入。'),lastInputError?'error':'');}
 function stopCamera(){controls?.stop();controls=null;media?.getTracks().forEach(t=>t.stop());media=null;if($('camera-box')){$('camera-video').srcObject=null;$('camera-box').hidden=true;}}
-async function submitRaw(raw){if(busy)return;stopCamera();busy=true;updateButtons();status('正在提交二维码…');try{renderTask(await api('/api/vip/submit',{raw}));await refreshBuyer();}catch(e){busy=false;updateButtons();throw e;}}
-async function decodeImage(file){if(!card||busy){status(busy?'正在处理上一笔登录请求。':'请先验证卡密。');return;}stopCamera();
-  if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new Error('unsupported_image_type');
-  if(file.size>config.image_max_bytes)throw new Error('image_too_large');
-  status('正在读取二维码截图…');const objectURL=URL.createObjectURL(file);let raw;
-  try{const image=new Image();image.src=objectURL;await image.decode();if(image.naturalWidth*image.naturalHeight>16000000)throw new Error('image_dimensions_too_large');
-    try{raw=(await new BrowserQRCodeReader().decodeFromImageElement(image)).getText();}
-    catch{const data=new FormData();data.append('image',file);raw=(await api('/api/qr/decode-image',data)).raw;}}
-  finally{URL.revokeObjectURL(objectURL);}
-  await submitRaw(raw);
+async function submitRaw(raw){if(busy||submitting)return;stopCamera();submitting=true;updateButtons();
+  lastInputError=null;recognized=false;const generation=cardGeneration;try{const parsed=await api('/api/qr/parse',{raw});
+    if(generation!==cardGeneration)return;
+    if(parsed.provider!=='quark_reference')throw new Error('invalid_quark_reference_qr');
+    recognized=true;
+    if(!config.available){status('已识别夸克电脑网页登录二维码。登录授权服务尚未接入，尚未登录；未扣次数。');return;}
+    status('二维码识别成功，正在提交登录授权…');renderTask(await api('/api/vip/submit',{raw}));await refreshBuyer();
+  }finally{submitting=false;updateButtons();}}
+async function decodeImage(file){if(!card||busy||reading||submitting){status(card?'正在处理上一笔登录请求。':'请先验证卡密。');return;}
+  if(!['issued','active'].includes(card.status)||card.remaining_scans<=0)return;
+  lastInputError=null;recognized=false;const generation=cardGeneration;stopCamera();reading=true;updateButtons();
+  try{if(file.size>config.image_max_bytes)throw new Error('image_too_large');
+    const bytes=new Uint8Array(await file.slice(0,12).arrayBuffer());
+    const starts=signature=>signature.every((value,index)=>bytes[index]===value);
+    const mime=starts([137,80,78,71,13,10,26,10])?'image/png':starts([255,216,255])?'image/jpeg':
+      starts([82,73,70,70])&&bytes[8]===87&&bytes[9]===69&&bytes[10]===66&&bytes[11]===80?'image/webp':null;
+    if(!mime)throw new Error('unsupported_image_type');
+    status('正在读取二维码截图…');const data=new FormData();
+    data.append('image',new Blob([file],{type:mime}),'qr-image');data.append('purpose','quark_web');
+    const parsed=await api('/api/qr/decode-image',data);if(generation===cardGeneration)await submitRaw(parsed.raw);
+  }finally{reading=false;updateButtons();}
 }
 async function buyer(){
   config=await api('/api/vip/config');$('notice').textContent=config.notice;
-  form('open-form',async()=>{const code=$('card-code').value.trim();$('card-code').value='';await api('/api/vip/open',{code});currentTask=null;await refreshBuyer();});
-  action('switch-card',async()=>{stopCamera();await api('/api/vip/logout',{});card=null;currentTask=null;busy=false;$('card-info').hidden=true;$('open-form').hidden=false;
+  form('open-form',async()=>{cardGeneration++;lastInputError=null;const code=$('card-code').value.trim();$('card-code').value='';await api('/api/vip/open',{code});currentTask=null;recognized=false;await refreshBuyer();});
+  action('switch-card',async()=>{cardGeneration++;lastInputError=null;stopCamera();await api('/api/vip/logout',{});card=null;currentTask=null;busy=false;recognized=false;$('card-info').hidden=true;$('open-form').hidden=false;
     $('card-label').textContent='打开你的卡密';$('card-status').textContent='待验证';$('card-status').className='badge';$('verify-form').hidden=true;$('owner-note').hidden=true;status('请输入另一张卡密。');});
   action('camera-open',async()=>{if(!navigator.mediaDevices?.getUserMedia)throw new Error('camera_unavailable');
     stopCamera();media=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('camera-box').hidden=false;
@@ -88,7 +103,7 @@ async function buyer(){
     if(item){e.preventDefault();decodeImage(item.getAsFile()).catch(error);}});
   form('verify-form',async()=>{const answer=$('verify-answer').value;$('verify-answer').value='';renderTask(await api(`/api/vip/tasks/${currentTask.id}/answer`,{answer}));});
   async function openLink(){const code=new URLSearchParams(location.hash.slice(1)).get('card');history.replaceState(null,'',location.pathname);
-    if(!code)return false;stopCamera();currentTask=null;busy=false;await api('/api/vip/open',{code});await refreshBuyer();return true;}
+    if(!code)return false;cardGeneration++;lastInputError=null;stopCamera();currentTask=null;busy=false;recognized=false;await api('/api/vip/open',{code});await refreshBuyer();return true;}
   window.addEventListener('hashchange',()=>openLink().catch(error));
   try{if(!await openLink())await refreshBuyer();}catch(e){if(e.message!=='vip_card_session_required')error(e);}
   let refreshing=false;polling=setInterval(async()=>{if(!card||refreshing||document.hidden)return;refreshing=true;try{await refreshBuyer();}catch(e){error(e);}finally{refreshing=false;}},5000);

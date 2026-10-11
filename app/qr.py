@@ -87,6 +87,8 @@ class QRParser:
                 return ParsedQR('local_authorization', raw, 'local', values['secret'], {'qr_id': qr_id, 'expire_at': expires, 'signature': values['sig']})
             raise HTTPException(422, 'invalid_local_qr')
         if url.scheme == 'https' and url.netloc == 'su.quark.cn' and url.path == '/4_eMHBJ':
+            if url.fragment:
+                raise HTTPException(422, 'invalid_quark_reference_qr')
             values = self._params(url.query)
             if values.get('client_id') != '532' or not re.fullmatch(r'[A-Za-z0-9._~-]{8,512}', values.get('token', '')):
                 raise HTTPException(422, 'invalid_quark_reference_qr')

@@ -9,14 +9,15 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 from decimal import Decimal
+from typing import Literal
 from urllib.parse import urlsplit
 import cv2
 import numpy as np
 import qrcode
 import redis
 import zxingcpp
-from PIL import Image, UnidentifiedImageError
-from fastapi import FastAPI, Request, Response, HTTPException, UploadFile, File
+from PIL import Image, ImageOps, UnidentifiedImageError
+from fastapi import FastAPI, Request, Response, HTTPException, UploadFile, File, Form
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -286,7 +287,7 @@ def create_app(settings=None, database=None, redis_client=None, clock=None, oaut
         return service.parser.parse(data.raw).to_dict()
 
     @app.post('/api/qr/decode-image')
-    async def decode_image(image: UploadFile = File(...)):
+    async def decode_image(image: UploadFile = File(...), purpose: Literal['general', 'quark_web'] = Form('general')):
         try:
             data = await image.read(settings.image_max_bytes + 1)
             if len(data) > settings.image_max_bytes:
@@ -303,16 +304,34 @@ def create_app(settings=None, database=None, redis_client=None, clock=None, oaut
                             raise HTTPException(413, 'image_dimensions_too_large')
                         img.verify()
                     with Image.open(io.BytesIO(data)) as img:
-                        pixels = np.array(img.convert('RGB'))
-                    raw, _, _ = cv2.QRCodeDetector().detectAndDecode(pixels)
-                    if not raw:
-                        decoded = zxingcpp.read_barcode(pixels, formats=zxingcpp.BarcodeFormat.QRCode)
-                        raw = decoded.text if decoded else ''
+                        oriented = ImageOps.exif_transpose(img).convert('RGBA')
+                        background = Image.new('RGBA', oriented.size, 'white')
+                        pixels = np.array(Image.alpha_composite(background, oriented).convert('RGB'))
+                    decoded = zxingcpp.read_barcodes(pixels, formats=zxingcpp.BarcodeFormat.QRCode)
+                    raws = list(dict.fromkeys(code.text for code in decoded if code.text))
+                    if not raws:
+                        raw, _, _ = cv2.QRCodeDetector().detectAndDecode(pixels)
+                        raws = [raw] if raw else []
                 except (UnidentifiedImageError, OSError, Image.DecompressionBombError, ValueError, cv2.error):
                     raise HTTPException(422, 'invalid_image') from None
-                if not raw:
+                if not raws:
                     raise HTTPException(422, 'qr_not_found')
-                return service.parser.parse(raw).to_dict()
+                if purpose == 'quark_web':
+                    matches = []
+                    for raw in raws:
+                        try:
+                            service.providers['quark_reference']._token(raw)
+                        except HTTPException:
+                            continue
+                        matches.append(raw)
+                    if not matches:
+                        raise HTTPException(422, 'invalid_quark_reference_qr')
+                    if len(matches) != 1:
+                        raise HTTPException(422, 'multiple_quark_qrs')
+                    return service.parser.parse(matches[0]).to_dict()
+                if len(raws) != 1:
+                    raise HTTPException(422, 'multiple_qr_codes')
+                return service.parser.parse(raws[0]).to_dict()
             return await run_in_threadpool(decode)
         finally:
             await image.close()  # closes and removes multipart spooled temporary file

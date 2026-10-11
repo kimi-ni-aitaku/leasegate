@@ -2,6 +2,8 @@
 
 **新增 VIP 对标业务入口：** 买家 `/qr`，运营后台 `/vip-admin`。支持批量加密账号池、限次卡密、临时链接、首次授权计时、设备绑定、异常换号、补充验证与到期撤销队列。真实夸克自动登录仍需接入可用的自有授权端；默认不会显示假成功。使用方式、授权端协议和验收边界见 [VIP-PRODUCT.md](VIP-PRODUCT.md)。
 
+**二维码上传识别已用真实截图验证。** 2026-10-11，Chrome DevTools MCP 捕获用户手机扫码后的独立浏览器登录，账号检查 `OK / SUPER_VIP`。截图解码与官方生成的 token 一致；已处理整页截图多码选择、透明背景、文件 MIME 缺失，并区分“识别成功”与“自动授权尚未接入”。见 [本次联调报告](research/quark-devtools-upload-test.md)。
+
 订单驱动的临时授权系统。FastAPI + PostgreSQL + Redis + ZXing 浏览器扫码。支持一次性卡密、扫码确认、SSE、15 分钟 Access JWT、默认 24 小时 Lease、自动到期、资源释放、审计与管理后台。
 
 **当前夸克联调状态：Chrome 的新 Cookie 有效，但独立 Safari 二维码的 Cookie 单独确认仍失败。** 2026-10-11，保持 Chrome 登录，账号与会员检查 `OK / SUPER_VIP`；Safari 新二维码确认前后均为 `WAIT_USER`，确认接口返回 `50001`，源 Cookie 测后继续有效。详见[Safari 独立浏览器实测](research/quark-safari-isolated-test.md)。另一次有效 Web Cookie 的官方电脑版交换成功返回 `20000` 并颁发 App Token，本机接收后仍待“确认登录”，最终客户端登录未验证；网页退出后旧凭据失效是此前独立记录，见 [Cookie 与客户端联调](research/quark-current-cookie-desktop.md)。扫码授权能力和指定设备注销仍未解决，按用户约束不接入会员手机 App。

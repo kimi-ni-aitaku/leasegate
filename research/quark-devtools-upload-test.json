@@ -1,0 +1,201 @@
+{
+  "captured_with": "Chrome DevTools MCP 1.10.1",
+  "steps": [
+    {
+      "endpoint": "uop.quark.cn/cas/ajax/getTokenForQrcodeLogin",
+      "query_fields": [
+        "client_id",
+        "v",
+        "request_id"
+      ],
+      "http_status": 200,
+      "status": 2000000,
+      "response_fields": [
+        "status",
+        "message",
+        "data"
+      ],
+      "data_fields": [
+        "members"
+      ],
+      "response_body_available": true,
+      "response_body_truncated": false,
+      "service_ticket_received": false
+    },
+    {
+      "endpoint": "uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken",
+      "query_fields": [
+        "client_id",
+        "v",
+        "request_id",
+        "token"
+      ],
+      "http_status": 200,
+      "status": 50004001,
+      "response_fields": [
+        "status",
+        "message"
+      ],
+      "data_fields": [],
+      "response_body_available": true,
+      "response_body_truncated": false,
+      "service_ticket_received": false
+    },
+    {
+      "endpoint": "uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken",
+      "query_fields": [
+        "client_id",
+        "v",
+        "request_id",
+        "token"
+      ],
+      "http_status": 200,
+      "response_fields": [],
+      "data_fields": [],
+      "response_body_available": false,
+      "response_body_truncated": false
+    },
+    {
+      "endpoint": "pan.quark.cn/account/info",
+      "query_fields": [
+        "st",
+        "lw"
+      ],
+      "http_status": 200,
+      "response_fields": [],
+      "data_fields": [],
+      "response_body_available": false,
+      "response_body_truncated": false,
+      "service_ticket_present_in_exchange": true,
+      "session_cookie_issued": true
+    },
+    {
+      "endpoint": "pan.quark.cn/account/info",
+      "query_fields": [
+        "fr",
+        "platform"
+      ],
+      "http_status": 200,
+      "code": "OK",
+      "success": true,
+      "response_fields": [
+        "success",
+        "data",
+        "code"
+      ],
+      "data_fields": [
+        "nickname",
+        "avatarUri",
+        "mobilekps",
+        "config"
+      ],
+      "response_body_available": true,
+      "response_body_truncated": false,
+      "service_ticket_received": false
+    },
+    {
+      "endpoint": "drive-member-h.quark.cn/1/clouddrive/member",
+      "query_fields": [
+        "pr",
+        "fr",
+        "fetch_subscribe",
+        "_ch",
+        "fetch_identity"
+      ],
+      "http_status": 200,
+      "status": 200,
+      "code": 0,
+      "response_fields": [
+        "status",
+        "code",
+        "message",
+        "timestamp",
+        "data",
+        "metadata"
+      ],
+      "data_fields": [
+        "member_type",
+        "subscribe_status",
+        "image_backup",
+        "uhx6",
+        "deep_recycle_stat",
+        "created_at",
+        "member_info",
+        "acc_status",
+        "secret_use_capacity",
+        "super_vip_exp_at",
+        "use_capacity",
+        "video_backup",
+        "extend_capacity_composition",
+        "is_new_user",
+        "member_status",
+        "identity",
+        "subscribe_pay_channel",
+        "secret_total_capacity",
+        "subscribe_pay_channel_map",
+        "exp_at",
+        "subscribe_status_map",
+        "total_capacity"
+      ],
+      "response_body_available": true,
+      "response_body_truncated": false,
+      "service_ticket_received": false,
+      "member_type": "SUPER_VIP"
+    },
+    {
+      "endpoint": "drive-pc.quark.cn/1/clouddrive/file/sort",
+      "query_fields": [
+        "pr",
+        "fr",
+        "pdir_fid",
+        "_page",
+        "_size",
+        "_fetch_total",
+        "_fetch_sub_dirs",
+        "_sort",
+        "fetch_all_file",
+        "fetch_risk_file_name"
+      ],
+      "http_status": 200,
+      "response_fields": [],
+      "data_fields": [],
+      "response_body_available": false,
+      "response_body_truncated": true,
+      "status": 200,
+      "code": 0
+    }
+  ],
+  "image_decode": {
+    "quark_qr_count": 1,
+    "size": [
+      2560,
+      1800
+    ],
+    "matches_generated_token": true,
+    "upload_http_status": 200,
+    "uploaded_raw_matches_image": true,
+    "provider": "quark_reference",
+    "error": null
+  },
+  "browser_login": {
+    "official_account_check": "OK",
+    "member_type": "SUPER_VIP",
+    "file_route_visible": true,
+    "phone_confirmation_performed_by_user": true,
+    "cookie_only_auto_confirmation_verified": false,
+    "phone_confirmation_request_captured": false
+  },
+  "frontend_checks": {
+    "no_mime_file_recognized": true,
+    "ambiguous_login_codes_rejected": true,
+    "login_and_download_codes_recognized": true,
+    "remaining_scans": 7,
+    "activation_started": false,
+    "authorization_task_count": 0,
+    "authorization_submit_request_sent": false
+  },
+  "tests": {
+    "passed": 97,
+    "skipped": 3
+  }
+}

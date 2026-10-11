@@ -144,9 +144,16 @@ def test_credential_rotation_refuses_duplicate_and_occupied_account(vip_system):
     path = f'/api/admin/vip/accounts/{owner["id"]}/credentials'
     assert client.post(path, json={'credential': 'OTHER_REFERENCE'}).status_code == 409
     card(client)
-    submit(client)
+    submitted = submit(client)
+    assert submitted.status_code == 200
     vip.tick()
-    response = client.post(path, json={'credential': 'REPLACEMENT_REFERENCE'})
+    # Either equally available account may be selected; check the one actually occupied.
+    with service.database.transaction() as db:
+        task = db.get(VIPLoginTask, submitted.json()['id'])
+        binding = db.get(VIPBinding, task.binding_id)
+        assert binding.status == 'active'
+        occupied_path = f'/api/admin/vip/accounts/{binding.account_id}/credentials'
+    response = client.post(occupied_path, json={'credential': 'REPLACEMENT_REFERENCE'})
     assert response.status_code == 409 and response.json()['detail'] == 'vip_account_has_active_bindings'
 
 
